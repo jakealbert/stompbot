@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="wrap_content" android:layout_height="wrap_content"
+	android:orientation="vertical" android:gravity="bottom"
+	android:paddingTop="-10dip" android:baselineAligned="false"
+	android:background="@android:color/transparent"
+	android:cacheColorHint="#00000000"	>
+	<RelativeLayout android:layout_width="fill_parent"
+		android:layout_height="wrap_content" android:baselineAligned="false"
+		android:gravity="left">
+
+		<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+			android:layout_width="match_parent" android:layout_height="wrap_content"
+			android:gravity="center_vertical" android:ignoreGravity="@+id/icon"
+					android:background="@drawable/playlist_tile_normal"
+			android:cacheColorHint="#00000000"
+			android:paddingLeft="47dip" 				android:paddingTop="2dip"
+			android:id="@+id/relativerow">
+			<TextView android:id="@+id/text1" android:paddingLeft="6dip"
+				android:layout_height="62dip"
+				android:background="#ffffff"
+				android:textColor="#000000" android:textAppearance="?android:attr/textAppearanceLarge"
+				android:gravity="center_vertical" android:minHeight="?android:attr/listPreferredItemHeight"
+				android:text="TEXTO" android:layout_width="match_parent" />
+		</RelativeLayout>
+
+		<ImageView android:id="@+id/arrow_down" android:layout_width="wrap_content"
+			android:layout_height="wrap_content" android:src="@drawable/white_down_arrow"
+			android:layout_below="@+id/relativerow" android:paddingLeft="59dip" android:layout_marginTop="-0.2dip"/>
+	</RelativeLayout>
+
+</LinearLayout>

@@ -1,0 +1,5 @@
+Android + Arduino + PureData
+
+Requires /dev/ttyMSM0 serial kernel for NexusOne
+Soon USB/Midi support.
+
