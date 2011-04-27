@@ -4,7 +4,8 @@
 	android:orientation="vertical" android:gravity="bottom"
 	android:background="#333333"
 	android:cacheColorHint="#00000000"
-	android:baselineAligned="false">
+	android:baselineAligned="false"
+	android:id="@+id/inputrow">
   	<RelativeLayout android:layout_width="fill_parent"
 		android:layout_height="wrap_content" android:baselineAligned="false"
 		android:gravity="left" android:background="@android:color/transparent">

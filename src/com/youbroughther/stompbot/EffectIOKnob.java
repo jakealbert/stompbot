@@ -61,20 +61,23 @@ public class EffectIOKnob implements EffectIO {
 
 	public void setValue(int v) {
 		this._curValue = v;
+		if (getSeekBar()!=null) {
+			getSeekBar().setProgress(getValue() + getMinValue());
+		}
 	}
 
 	public void incrementValue() {
 		int tmp = _curValue + _rate;
 		if (tmp > _maxValue)
 			tmp = _maxValue;
-		_curValue = tmp;
+		setValue(tmp);
 	}
 
 	public void decrementValue() {
 		int tmp = _curValue - _rate;
 		if (tmp < _minValue)
 			tmp = _minValue;
-		_curValue = tmp;
+		setValue(tmp);
 	}
 
 	public String getName() {

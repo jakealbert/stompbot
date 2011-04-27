@@ -41,7 +41,26 @@
 			android:id="@+id/title_refresh_progress" android:visibility="gone" />
 
 	</LinearLayout>
+	<LinearLayout android:orientation="vertical"
+		android:layout_width="match_parent" android:layout_height="fill_parent" android:layout_weight="3"
+        android:baselineAligned="false"
+		android:gravity="top"
+		android:padding="0dip" android:id="@+id/effect_view"
+		android:background="#ffffff"
+		android:visibility="gone">
+		<TextView android:id="@+id/effect_name" android:paddingLeft="10dip"
+		android:paddingTop="10dip"
+				android:layout_height="62dip"
+				android:background="#ffffff"
+				android:textColor="#000000" android:textAppearance="?android:attr/textAppearanceLarge"
+				android:gravity="top" android:minHeight="?android:attr/listPreferredItemHeight"
+				android:text="TEXTO" android:layout_width="wrap_content" />
 
+		<LinearLayout android:orientation="vertical"
+						android:paddingLeft="10dip"
+						android:id="@+id/effect_ios" android:layout_width="match_parent" android:layout_height="fill_parent"  >
+		</LinearLayout>		
+	</LinearLayout>
 	<LinearLayout android:orientation="vertical"
 		android:layout_width="match_parent" android:layout_height="fill_parent"
 		android:layout_weight="1" android:padding="0dip" android:id="@+id/knob_view"

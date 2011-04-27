@@ -9,7 +9,7 @@ public class EffectInput extends Effect {
 		knobs.add(new EffectIOKnob("Pre-Gain"));
 		this._knobs = knobs;
 		ArrayList<EffectIOSwitch> switches = new ArrayList<EffectIOSwitch>();
-		switches.add(new EffectIOSwitch("High Gain"));
+		switches.add(new EffectIOSwitch("Enable"));
 		this._switches = switches;
 		ArrayList<EffectIOLED> leds = new ArrayList<EffectIOLED>();
 		leds.add(new EffectIOLED("Level"));

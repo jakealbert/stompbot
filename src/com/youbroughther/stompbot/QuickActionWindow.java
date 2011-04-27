@@ -174,7 +174,7 @@ public class QuickActionWindow extends PopupWindow implements KeyEvent.Callback 
 
 			public void onProgressChanged(SeekBar arg0, int arg1, boolean arg2) {
 				_knob.setValue(arg1 + _knob.getMinValue());
-				String floatstr = "1002." + ef.getHashName() + ".1 "
+				String floatstr = ef.getHashName() + "-"
 						+ kb.getHashName();
 				int floatval = _knob.getValue();
 				tv.append("\n" + floatstr + ": " + floatval);

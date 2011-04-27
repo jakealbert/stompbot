@@ -27,6 +27,9 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -63,6 +66,7 @@ public class DragDropListView extends ListView {
 
 	private DragListener mDragListener;
 	private DropListener mDropListener;
+	private Handler efclickhandler;
 
 	public DragDropListView(Context context, AttributeSet attrs) {
 		super(context, attrs);
@@ -72,7 +76,11 @@ public class DragDropListView extends ListView {
 		mItemHeightExpanded = res
 				.getDimensionPixelSize(R.dimen.expanded_height);
 	}
+	public void setClickHandler(Handler h) {
+		efclickhandler = h;
+	}
 
+	
 	@Override
 	public boolean onInterceptTouchEvent(MotionEvent ev) {
 		if (mDragListener != null || mDropListener != null) {
@@ -84,8 +92,21 @@ public class DragDropListView extends ListView {
 				if (itemnum == AdapterView.INVALID_POSITION) {
 					break;
 				}
+
 				ViewGroup item = (ViewGroup) getChildAt(itemnum
 						- getFirstVisiblePosition());
+				if (x > 100 && x < 440) {
+					return false;
+				}
+				if (x > 440) {
+					Message msg = new Message();
+					Bundle b = new Bundle();
+					b.putInt("effect", itemnum - getFirstVisiblePosition());
+					msg.setData(b);
+					efclickhandler
+							.sendMessageAtFrontOfQueue(msg);
+					return false;
+				}
 				mDragPoint = y - item.getTop();
 				mCoordOffset = ((int) ev.getRawY()) - y;
 				item.setDrawingCacheEnabled(true);
@@ -222,8 +243,13 @@ public class DragDropListView extends ListView {
 			case MotionEvent.ACTION_MOVE:
 				int x = (int) ev.getX();
 				int y = (int) ev.getY();
-				dragView(x, y);
 				int itemnum = getItemForPosition(y);
+
+				if (x > 440) {
+				
+					return false;
+				}
+				dragView(x, y);
 				if (itemnum >= 0) {
 					if (action == MotionEvent.ACTION_DOWN
 							|| itemnum != mDragPos) {
@@ -259,7 +285,7 @@ public class DragDropListView extends ListView {
 				}
 				break;
 			}
-			return true;
+			return  true;
 		}
 		return super.onTouchEvent(ev);
 	}
@@ -301,7 +327,7 @@ public class DragDropListView extends ListView {
 		mWindowManager.updateViewLayout(mDragView, mWindowParams);
 	}
 
-	private void stopDragging() {
+	void stopDragging() {
 		if (mDragView != null) {
 			WindowManager wm = (WindowManager) getContext().getSystemService(
 					Context.WINDOW_SERVICE);
