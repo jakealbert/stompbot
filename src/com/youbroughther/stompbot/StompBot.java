@@ -241,9 +241,10 @@ public class StompBot extends Activity implements
 
 		SharedPreferences prefs = getPreferences(MODE_WORLD_READABLE);
 		for (int i = 0; i < 3; i++) {
-			switchSettings[i] = new EffectIOSetting(prefs.getInt("s" + i + "e",
-					-1), prefs.getInt("s" + i + "i", -1));
+	
 			if (prefs.getInt("s" + i + "e", -1) != -1) {
+				switchSettings[i] = new EffectIOSetting(prefs.getInt("s" + i + "e",
+						-1), prefs.getInt("s" + i + "i", -1));
 				setButtonName(switchButtons[i], effectList.get(
 						switchSettings[i]._effect).getName(), effectList.get(
 						switchSettings[i]._effect).getSwitches().get(
@@ -251,10 +252,13 @@ public class StompBot extends Activity implements
 				switchButtons[i].setCompoundDrawablesWithIntrinsicBounds(null,
 						getResources().getDrawable(R.drawable.spstoff), null,
 						null);
+			} else {
+				switchSettings[i] = null;
 			}
-			ledSettings[i] = new EffectIOSetting(prefs
-					.getInt("l" + i + "e", -1), prefs.getInt("l" + i + "i", -1));
+			
 			if (prefs.getInt("l" + i + "e", -1) != -1) {
+				ledSettings[i] = new EffectIOSetting(prefs
+						.getInt("l" + i + "e", -1), prefs.getInt("l" + i + "i", -1));
 				setButtonName(ledButtons[i], effectList.get(
 						ledSettings[i]._effect).getName(), effectList.get(
 						ledSettings[i]._effect).getLEDValues().get(
@@ -262,10 +266,13 @@ public class StompBot extends Activity implements
 				ledButtons[i].setCompoundDrawablesWithIntrinsicBounds(null,
 						getResources().getDrawable(R.drawable.ledoff), null,
 						null);
+			} else {
+				ledSettings[i] = null;
 			}
-			knobSettings[i] = new EffectIOSetting(prefs.getInt("k" + i + "e",
-					-1), prefs.getInt("k" + i + "i", -1));
+			
 			if (prefs.getInt("k" + i + "e", -1) != -1) {
+				knobSettings[i] = new EffectIOSetting(prefs.getInt("k" + i + "e",
+						-1), prefs.getInt("k" + i + "i", -1));
 				setButtonName(knobButtons[i], effectList.get(
 						knobSettings[i]._effect).getName(), effectList.get(
 						knobSettings[i]._effect).getKnobs().get(
@@ -273,6 +280,8 @@ public class StompBot extends Activity implements
 				knobButtons[i].setCompoundDrawablesWithIntrinsicBounds(null,
 						getResources().getDrawable(R.drawable.knobon), null,
 						null);
+			} else {
+				knobSettings[i] = null;
 			}
 		}
 		for (int i = 1; i < effectList.size(); i++) {
@@ -580,6 +589,7 @@ public class StompBot extends Activity implements
 
 		public void onClick(DialogInterface dialog, int item) {
 			if (item == effectList.size()) {
+				onLEDClick(_io, false);
 				ledSettings[_io] = null;
 				setButtonName(ledButtons[_io], "&mdash;", "LED");
 				ledStates[_io] = false;
@@ -609,6 +619,8 @@ public class StompBot extends Activity implements
 														.get(tmpEffect)
 														.getLEDValues().get(
 																item).getName());
+										onLEDClick(_io, true);
+
 										if (effectList.get(tmpEffect)
 												.getLEDValues().get(item)
 												.getEnabled()) {
@@ -627,6 +639,33 @@ public class StompBot extends Activity implements
 		}
 	}
 
+	public void onLEDClick(int knob, boolean toggle) {
+		if (ledSettings[knob] != null && ledSettings[knob]._effect !=-1 && ledSettings[knob]._io != -1) {
+			if (!toggle) {
+				ledStates[knob] = false;
+				effectList.get(ledSettings[knob]._effect).getLEDValues().get(
+						ledSettings[knob]._io).setEnabled(false);
+				ledButtons[knob].setCompoundDrawablesWithIntrinsicBounds(null,
+						getResources().getDrawable(R.drawable.ledoff), null,
+						null);
+			} else {
+				ledStates[knob] = true;
+				effectList.get(ledSettings[knob]._effect).getLEDValues().get(
+						ledSettings[knob]._io).setEnabled(true);
+				ledButtons[knob].setCompoundDrawablesWithIntrinsicBounds(null,
+						getResources().getDrawable(R.drawable.ledon5), null,
+						null);
+			}
+			String floatstr = effectList.get(ledSettings[knob]._effect).getHashName()
+					+ "-"
+					+ effectList.get(ledSettings[knob]._effect).getLEDValues()
+							.get(ledSettings[knob]._io).getHashName();
+			int floatval = toggle ? 1 : 0;
+			post(floatstr + ": " + floatval);
+			PdBase.sendFloat(floatstr, floatval);
+		}
+	}
+	
 	public void onLEDClick(int knob) {
 		if (ledSettings[knob] != null && ledSettings[knob]._effect !=-1 && ledSettings[knob]._io != -1) {
 			if (ledStates[knob]) {
@@ -721,16 +760,7 @@ public class StompBot extends Activity implements
 						null, getResources().getDrawable(R.drawable.spston),
 						null, null);
 			}
-			// serialSend("S:"+knob+":"+(switchStates[knob] ? "1" : "0"));
-			if (knob == 0) {
-				PdBase.sendFloat("left", switchStates[knob] ? 1 : 0);
-
-			} else if (knob == 1) {
-				PdBase.sendFloat("right", switchStates[knob] ? 1 : 0);
-
-			} else {
-				PdBase.sendFloat("mic", switchStates[knob] ? 1 : 0);
-			}
+		
 
 			String floatstr = effectList.get(switchSettings[knob]._effect)
 							.getHashName()
@@ -1037,7 +1067,15 @@ public class StompBot extends Activity implements
 
 		@Override
 		public void receiveFloat(String source, float x) {
-			pdPost("float: " + x);
+//			for(int i = 0; i < 3; i++) {
+//				if (ledSettings[i] != null && ledSettings[i]._effect != -1 && ledSettings[i]._io != -1) {
+//					Effect ef = effectList.get(ledSettings[i]._effect);
+//					String efhash = ef.getHashName() + "-" + ef.getLEDValues().get(ledSettings[i]._io).getHashName()+"-led";
+//					if (source.equals(efhash)) {
+//						serialSend();
+//					}
+//				}
+//			}
 		}
 
 		@Override
@@ -1084,10 +1122,15 @@ public class StompBot extends Activity implements
 			// defaults/preferences
 			pdService.startAudio(new Intent(this, StompBot.class),
 					R.drawable.icon, name, "Return to " + name + ".");
-			PdBase.sendFloat("left", 0);
-			PdBase.sendFloat("right", 0);
-			PdBase.sendFloat("mic", 0);
-
+			Iterator<Effect> efit = effectList.iterator();
+			while(efit.hasNext()) {
+				Effect ef = efit.next();
+				Iterator<EffectIO> swit = ef.getControls().iterator();
+				while(swit.hasNext()) {
+					EffectIO efio = swit.next();
+					PdBase.sendFloat(ef.getHashName()+"-"+efio.getHashName(),0);
+				}
+			}
 		} catch (IOException e) {
 			toast(e.toString());
 		}

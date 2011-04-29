@@ -176,7 +176,7 @@ public class QuickActionWindow extends PopupWindow implements KeyEvent.Callback 
 				_knob.setValue(arg1 + _knob.getMinValue());
 				String floatstr = ef.getHashName() + "-"
 						+ kb.getHashName();
-				int floatval = _knob.getValue();
+				float floatval = _knob.getFloatValue();
 				tv.append("\n" + floatstr + ": " + floatval);
 				PdBase.sendFloat(floatstr, floatval);
 				float ledfloat = 10 * (_knob.getValue() - _knob.getMinValue())
