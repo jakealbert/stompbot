@@ -85,9 +85,14 @@ dsp 1 \;;
 #X msg 121 214 \; \$1.slop~.1 6000 \; \$1.ship~.1 1000 \; \$1.stremolo~.1
 20 0 1.68 50 \; \$1.sdelay~.1 120 60 40 \; \$1.route 2 0 4 1 3 \; pd
 dsp 1 \;;
+#X obj 556 132 loadbang;
+#X obj 547 215 print;
+#X msg 526 166 hello;
 #X connect 0 0 11 0;
 #X connect 5 0 0 0;
 #X connect 6 0 12 0;
 #X connect 7 0 6 0;
 #X connect 8 0 13 0;
 #X connect 9 0 8 0;
+#X connect 14 0 16 0;
+#X connect 16 0 15 0;

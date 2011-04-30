@@ -31,6 +31,7 @@ import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.os.Bundle;
+import android.os.Debug;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -841,10 +842,22 @@ public class StompBot extends Activity implements
 				effectList.add(to + 1, ef);
 				for (int i = 1; i < effectList.size(); i++) {
 					Effect eff = effectList.get(i);
-					String floatstr = eff.getName().toLowerCase() + "-position";
-					int floatval = i - 1;
-					post(floatstr + ": " + floatval);
-					PdBase.sendFloat(floatstr, floatval);
+					String floatstr = eff.getName().toLowerCase() + "-receive-from";
+					
+					String chfromstr;
+					if(i == 1) {
+						chfromstr = "clean-input";
+					} else {
+						eff = effectList.get(i-1);
+						chfromstr = eff.getName().toLowerCase() + "-output";
+					}
+					
+					//int floatval = i - 1;
+					//post(floatstr + ": " + floatval);
+					//PdBase.sendFloat(floatstr, floatval);
+
+					post(floatstr + ": " + chfromstr);
+					PdBase.sendSymbol(floatstr, chfromstr);
 				}
 			}
 			ListView pedals = (ListView) findViewById(R.id.drag_drop_list);
@@ -933,9 +946,10 @@ public class StompBot extends Activity implements
 			PdBase.setReceiver(receiver);
 			PdBase.subscribe("android");
 			InputStream in = res.openRawResource(R.raw.test);
-			patchFile = IoUtils.extractResource(in, "test.pd", getCacheDir());
+			patchFile = IoUtils.extractResource(in, "stompbot.pd", getCacheDir());
 			PdBase.openPatch(patchFile);
 			startAudio();
+			Log.d(getResources().getString(R.string.app_name), "loaded"+patchFile.getName());
 		} catch (IOException e) {
 			Log.e(getResources().getString(R.string.app_name), e.toString());
 			finish();
