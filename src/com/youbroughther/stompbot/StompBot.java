@@ -560,10 +560,8 @@ public class StompBot extends Activity implements
 						getResources().getDrawable(R.drawable.ledon5), null,
 						null);
 			}
-			String floatstr = "1002."
-					+ effectList.get(ledSettings[knob]._effect).getHashName()
-					+ ".1"
-					+ " "
+			String floatstr = effectList.get(ledSettings[knob]._effect).getHashName()
+					+ "-"
 					+ effectList.get(ledSettings[knob]._effect).getLEDValues()
 							.get(ledSettings[knob]._io).getHashName();
 			int floatval = ledStates[knob] ? 1 : 0;
@@ -640,21 +638,18 @@ public class StompBot extends Activity implements
 						null, null);
 			}
 			// serialSend("S:"+knob+":"+(switchStates[knob] ? "1" : "0"));
-			if (knob == 0) {
-				PdBase.sendFloat("left", switchStates[knob] ? 1 : 0);
+			//if (knob == 0) {
+			//	PdBase.sendFloat("left", switchStates[knob] ? 1 : 0);
 
-			} else if (knob == 1) {
-				PdBase.sendFloat("right", switchStates[knob] ? 1 : 0);
+			//} else if (knob == 1) {
+			//	PdBase.sendFloat("right", switchStates[knob] ? 1 : 0);
 
-			} else {
-				PdBase.sendFloat("mic", switchStates[knob] ? 1 : 0);
-			}
+			//} else {
+			//	PdBase.sendFloat("mic", switchStates[knob] ? 1 : 0);
+			//}
 
-			String floatstr = "1002."
-					+ effectList.get(switchSettings[knob]._effect)
-							.getHashName()
-					+ ".1"
-					+ " "
+			String floatstr = effectList.get(switchSettings[knob]._effect).getHashName()
+					+ "-"
 					+ effectList.get(switchSettings[knob]._effect)
 							.getSwitches().get(switchSettings[knob]._io)
 							.getHashName();
@@ -840,16 +835,17 @@ public class StompBot extends Activity implements
 				Effect ef = effectList.get(from + 1);
 				effectList.remove(from + 1);
 				effectList.add(to + 1, ef);
+				Effect eff;
 				for (int i = 1; i < effectList.size(); i++) {
-					Effect eff = effectList.get(i);
-					String floatstr = eff.getName().toLowerCase() + "-receive-from";
+					eff = effectList.get(i);
+					String floatstr = eff.getHashName() + "-receive-from";
 					
 					String chfromstr;
 					if(i == 1) {
 						chfromstr = "clean-input";
 					} else {
 						eff = effectList.get(i-1);
-						chfromstr = eff.getName().toLowerCase() + "-output";
+						chfromstr = eff.getHashName() + "-output";
 					}
 					
 					//int floatval = i - 1;
@@ -859,6 +855,9 @@ public class StompBot extends Activity implements
 					post(floatstr + ": " + chfromstr);
 					PdBase.sendSymbol(floatstr, chfromstr);
 				}
+				eff = effectList.get(effectList.size()-1);
+				post("output-receive-from:"+eff.getHashName()+"-output");
+				PdBase.sendSymbol("output-receive-from", eff.getHashName()+"-output");
 			}
 			ListView pedals = (ListView) findViewById(R.id.drag_drop_list);
 			pedals.setAdapter(new EffectArrayAdapter(getApplicationContext(),
