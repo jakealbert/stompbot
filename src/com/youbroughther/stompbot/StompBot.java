@@ -20,7 +20,6 @@ import org.puredata.core.utils.IoUtils;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -30,6 +29,7 @@ import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.Rect;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Debug;
 import android.os.Handler;
@@ -77,10 +77,73 @@ public class StompBot extends Activity implements
 	private TextView logs;
 	private PdService pdService = null;
 
+	public Handler efclickhandler = new Handler() {
+		public void handleMessage(Message msg) {
+			ImageButton homeicon = (ImageButton) findViewById(R.id.title_home_icon);
+			homeicon.setBackgroundColor(Color.BLACK);
+			homeicon.setImageResource(R.drawable.ic_title_home);
+			View eff2 = (View) findViewById(R.id.order_view);
+			eff2.setVisibility(View.GONE);
+			View eff = (View) findViewById(R.id.effect_view);
+			ViewGroup effios = (ViewGroup) findViewById(R.id.effect_ios);
+			Effect ef = effectList.get(msg.getData().getInt("effect")+1);
+			effios.removeAllViews();
+			TextView t;
+			
+			t = new TextView(getApplicationContext());
+			t.setTextColor(Color.BLACK);
+			t.setText("Switches:");
+			t.setTypeface(Typeface.DEFAULT_BOLD);
+			t.setTextSize((float) 18.0);
+			effios.addView(t);
+			Iterator<EffectIOSwitch> switchit = ef.getSwitches().iterator();
+			while(switchit.hasNext()) {
+				EffectIO sw = switchit.next();
+				t = new TextView(getApplicationContext());
+				t.setTextColor(Color.BLACK);
+				t.setText(sw.getName()+": "+(sw.getValue() > 0 ? "On" : "Off" ));
+				t.setTextSize((float) 18.0);
+				effios.addView(t);
+			}
+			effios.addView(new TextView(getApplicationContext()));
+			t = new TextView(getApplicationContext());
+			t.setTextColor(Color.BLACK);
+			t.setText("Knobs:");
+			t.setTypeface(Typeface.DEFAULT_BOLD);
+			t.setTextSize((float) 18.0);
+			effios.addView(t);
+			Iterator<EffectIOKnob> knobit = ef.getKnobs().iterator();
+			while(knobit.hasNext()) {
+				EffectIO kn = knobit.next();
+				t = new TextView(getApplicationContext());
+				t.setTextColor(Color.BLACK);
+				t.setText(kn.getName()+": "+kn.getValue());
+				t.setTextSize((float) 18.0);
+				effios.addView(t);
+			}
+			
+			
+			
+			t = (TextView) eff.findViewById(R.id.effect_name);
+			t.setText(ef.getName());
+			eff.setVisibility(View.VISIBLE);
+
+		}
+	};
+	
 	private Handler switchHandler = new Handler() {
 		public void handleMessage(Message msg) {
 			int knob = msg.getData().getInt("knob");
+			View efview = (View) findViewById(R.id.effect_view);
 			onSwitchClick(knob);
+			if (efview.getVisibility() == View.VISIBLE && switchSettings[knob] != null && switchSettings[knob]._effect != -1 && switchSettings[knob]._io != -1) {
+				Message msg2 = new Message();
+				Bundle b = new Bundle();
+				b.putInt("effect", switchSettings[knob]._effect - 1);
+				msg2.setData(b);
+				efclickhandler
+						.sendMessageAtFrontOfQueue(msg2);
+			}
 		}
 	};
 
@@ -179,9 +242,10 @@ public class StompBot extends Activity implements
 
 		SharedPreferences prefs = getPreferences(MODE_WORLD_READABLE);
 		for (int i = 0; i < 3; i++) {
-			switchSettings[i] = new EffectIOSetting(prefs.getInt("s" + i + "e",
-					-1), prefs.getInt("s" + i + "i", -1));
+	
 			if (prefs.getInt("s" + i + "e", -1) != -1) {
+				switchSettings[i] = new EffectIOSetting(prefs.getInt("s" + i + "e",
+						-1), prefs.getInt("s" + i + "i", -1));
 				setButtonName(switchButtons[i], effectList.get(
 						switchSettings[i]._effect).getName(), effectList.get(
 						switchSettings[i]._effect).getSwitches().get(
@@ -189,10 +253,13 @@ public class StompBot extends Activity implements
 				switchButtons[i].setCompoundDrawablesWithIntrinsicBounds(null,
 						getResources().getDrawable(R.drawable.spstoff), null,
 						null);
+			} else {
+				switchSettings[i] = null;
 			}
-			ledSettings[i] = new EffectIOSetting(prefs
-					.getInt("l" + i + "e", -1), prefs.getInt("l" + i + "i", -1));
+			
 			if (prefs.getInt("l" + i + "e", -1) != -1) {
+				ledSettings[i] = new EffectIOSetting(prefs
+						.getInt("l" + i + "e", -1), prefs.getInt("l" + i + "i", -1));
 				setButtonName(ledButtons[i], effectList.get(
 						ledSettings[i]._effect).getName(), effectList.get(
 						ledSettings[i]._effect).getLEDValues().get(
@@ -200,10 +267,13 @@ public class StompBot extends Activity implements
 				ledButtons[i].setCompoundDrawablesWithIntrinsicBounds(null,
 						getResources().getDrawable(R.drawable.ledoff), null,
 						null);
+			} else {
+				ledSettings[i] = null;
 			}
-			knobSettings[i] = new EffectIOSetting(prefs.getInt("k" + i + "e",
-					-1), prefs.getInt("k" + i + "i", -1));
+			
 			if (prefs.getInt("k" + i + "e", -1) != -1) {
+				knobSettings[i] = new EffectIOSetting(prefs.getInt("k" + i + "e",
+						-1), prefs.getInt("k" + i + "i", -1));
 				setButtonName(knobButtons[i], effectList.get(
 						knobSettings[i]._effect).getName(), effectList.get(
 						knobSettings[i]._effect).getKnobs().get(
@@ -211,6 +281,8 @@ public class StompBot extends Activity implements
 				knobButtons[i].setCompoundDrawablesWithIntrinsicBounds(null,
 						getResources().getDrawable(R.drawable.knobon), null,
 						null);
+			} else {
+				knobSettings[i] = null;
 			}
 		}
 		for (int i = 1; i < effectList.size(); i++) {
@@ -231,10 +303,23 @@ public class StompBot extends Activity implements
 
 		ListView pedals = (ListView) findViewById(R.id.drag_drop_list);
 		pedals.setOnCreateContextMenuListener(this);
-		((DragDropListView) pedals).setDropListener(mDropListener);
+		View inputv = (View) findViewById(R.id.inputrow);
+		inputv.setOnClickListener(new OnClickListener(){
 
+			@Override
+			public void onClick(View arg0) {
+				Message msg = new Message();
+				Bundle b = new Bundle();
+				b.putInt("effect", -1);
+				msg.setData(b);
+				efclickhandler
+						.sendMessageAtFrontOfQueue(msg);
+			}});
+		((DragDropListView) pedals).setDropListener(mDropListener);
+		((DragDropListView) pedals).setClickHandler(efclickhandler);
 		pedals.setAdapter(new EffectArrayAdapter(getApplicationContext(),
 				R.layout.pedalrow, getEffectNamesForList()));
+
 		if (pedals.getChildCount() > 1) {
 			pedals.getChildAt(pedals.getChildCount() - 1).findViewById(
 					R.id.arrow_down).setVisibility(View.GONE);
@@ -262,14 +347,23 @@ public class StompBot extends Activity implements
 			if (switchSettings[i] != null) {
 				editor.putInt("s" + i + "e", switchSettings[i]._effect);
 				editor.putInt("s" + i + "i", switchSettings[i]._io);
+			} else {
+				editor.putInt("s" + i + "e", -1);
+				editor.putInt("s" + i + "i", -1);
 			}
 			if (ledSettings[i] != null) {
 				editor.putInt("l" + i + "e", ledSettings[i]._effect);
 				editor.putInt("l" + i + "i", ledSettings[i]._io);
+			} else {
+				editor.putInt("l" + i + "e", -1);
+				editor.putInt("l" + i + "i", -1);
 			}
 			if (knobSettings[i] != null) {
 				editor.putInt("k" + i + "e", knobSettings[i]._effect);
 				editor.putInt("k" + i + "i", knobSettings[i]._io);
+			} else {
+				editor.putInt("k" + i + "e", -1);
+				editor.putInt("k" + i + "i", -1);
 			}
 		}
 		for (int i = 1; i < effectList.size(); i++) {
@@ -496,6 +590,7 @@ public class StompBot extends Activity implements
 
 		public void onClick(DialogInterface dialog, int item) {
 			if (item == effectList.size()) {
+				onLEDClick(_io, false);
 				ledSettings[_io] = null;
 				setButtonName(ledButtons[_io], "&mdash;", "LED");
 				ledStates[_io] = false;
@@ -525,6 +620,8 @@ public class StompBot extends Activity implements
 														.get(tmpEffect)
 														.getLEDValues().get(
 																item).getName());
+										onLEDClick(_io, true);
+
 										if (effectList.get(tmpEffect)
 												.getLEDValues().get(item)
 												.getEnabled()) {
@@ -543,8 +640,35 @@ public class StompBot extends Activity implements
 		}
 	}
 
+	public void onLEDClick(int knob, boolean toggle) {
+		if (ledSettings[knob] != null && ledSettings[knob]._effect !=-1 && ledSettings[knob]._io != -1) {
+			if (!toggle) {
+				ledStates[knob] = false;
+				effectList.get(ledSettings[knob]._effect).getLEDValues().get(
+						ledSettings[knob]._io).setEnabled(false);
+				ledButtons[knob].setCompoundDrawablesWithIntrinsicBounds(null,
+						getResources().getDrawable(R.drawable.ledoff), null,
+						null);
+			} else {
+				ledStates[knob] = true;
+				effectList.get(ledSettings[knob]._effect).getLEDValues().get(
+						ledSettings[knob]._io).setEnabled(true);
+				ledButtons[knob].setCompoundDrawablesWithIntrinsicBounds(null,
+						getResources().getDrawable(R.drawable.ledon5), null,
+						null);
+			}
+			String floatstr = effectList.get(ledSettings[knob]._effect).getHashName()
+					+ "-"
+					+ effectList.get(ledSettings[knob]._effect).getLEDValues()
+							.get(ledSettings[knob]._io).getHashName();
+			int floatval = toggle ? 1 : 0;
+			post(floatstr + ": " + floatval);
+			PdBase.sendFloat(floatstr, floatval);
+		}
+	}
+	
 	public void onLEDClick(int knob) {
-		if (ledSettings[knob] != null) {
+		if (ledSettings[knob] != null && ledSettings[knob]._effect !=-1 && ledSettings[knob]._io != -1) {
 			if (ledStates[knob]) {
 				ledStates[knob] = false;
 				effectList.get(ledSettings[knob]._effect).getLEDValues().get(
@@ -580,7 +704,7 @@ public class StompBot extends Activity implements
 
 	public void onKnobClick(int knob) {
 		View v = knobButtons[knob];
-		if (knobSettings[knob] != null) {
+		if (knobSettings[knob] != null && knobSettings[knob]._effect !=-1 && knobSettings[knob]._io != -1) {
 			int[] xy = new int[2];
 			v.getLocationInWindow(xy);
 			Rect rect = new Rect(xy[0], xy[1], xy[0] + v.getWidth(), xy[1]
@@ -621,7 +745,7 @@ public class StompBot extends Activity implements
 	}
 
 	public void onSwitchClick(int knob) {
-		if (switchSettings[knob] != null) {
+		if (switchSettings[knob] != null && switchSettings[knob]._effect !=-1 && switchSettings[knob]._io != -1) {
 			if (switchStates[knob]) {
 				switchStates[knob] = false;
 				effectList.get(switchSettings[knob]._effect).getSwitches().get(
@@ -723,7 +847,8 @@ public class StompBot extends Activity implements
 		homeicon.setImageResource(R.drawable.ic_title_home_alt);
 		knobicon.setBackgroundColor(Color.BLACK);
 		knobicon.setImageResource(R.drawable.ic_menu_settings);
-
+		View vv3 = (View) findViewById(R.id.effect_view);
+		vv3.setVisibility(View.GONE);
 		vv2.setVisibility(View.GONE);
 		vv1.setVisibility(View.VISIBLE);
 
@@ -738,7 +863,8 @@ public class StompBot extends Activity implements
 		homeicon.setImageResource(R.drawable.ic_title_home);
 		knobicon.setBackgroundColor(Color.WHITE);
 		knobicon.setImageResource(R.drawable.ic_menu_settings_alt);
-
+		View vv3 = (View) findViewById(R.id.effect_view);
+		vv3.setVisibility(View.GONE);
 		vv1.setVisibility(View.GONE);
 		vv2.setVisibility(View.VISIBLE);
 	}
@@ -791,6 +917,7 @@ public class StompBot extends Activity implements
 											kn.getSeekBar().setProgress(
 													kn.getValue()
 															+ kn.getMinValue());
+										}
 											float ledfloat = 10
 													* kn.getValue()
 													/ (kn.getMaxValue() - kn
@@ -802,7 +929,17 @@ public class StompBot extends Activity implements
 											poststr = "x" + (knob + 1)
 													+ poststr;
 											serialSend(poststr);
+										
+										View efview = findViewById(R.id.effect_view);
+										if (efview.getVisibility() == View.VISIBLE && knobSettings[knob] != null && knobSettings[knob]._effect != -1 && knobSettings[knob]._io != -1) {
+											Message msg2 = new Message();
+											Bundle b = new Bundle();
+											b.putInt("effect", knob - 1);
+											msg2.setData(b);
+											efclickhandler
+													.sendMessageAtFrontOfQueue(msg2);
 										}
+										
 									}
 								} else if (linec[0] == 'x' && linec[1] == 's') {
 									int knob = Character
@@ -855,6 +992,41 @@ public class StompBot extends Activity implements
 					post(floatstr + ": " + chfromstr);
 					PdBase.sendSymbol(floatstr, chfromstr);
 				}
+				int frome = from + 1;
+				int toe = to + 1;
+				for (int i = 0; i < 3; i++) {
+					if (knobSettings[i] != null && knobSettings[i]._effect == frome) {
+						knobSettings[i]._effect = 999;
+					}
+					if (switchSettings[i] != null && switchSettings[i]._effect == frome) {
+						switchSettings[i]._effect = 999;
+					}
+					if (ledSettings[i] != null && ledSettings[i]._effect == frome) {
+						ledSettings[i]._effect = 999;
+					}
+				}
+				for (int i = 0; i < 3; i++) {
+					if (knobSettings[i] != null && knobSettings[i]._effect == toe) {
+						knobSettings[i]._effect = frome;
+					}
+					if (switchSettings[i] != null && switchSettings[i]._effect == toe) {
+						switchSettings[i]._effect = frome;
+					}
+					if (ledSettings[i] != null && ledSettings[i]._effect == toe) {
+						ledSettings[i]._effect = frome;
+					}
+				}
+				for (int i = 0; i < 3; i++) {
+					if (knobSettings[i] != null && knobSettings[i]._effect == 999) {
+						knobSettings[i]._effect = toe;
+					}
+					if (switchSettings[i] != null && switchSettings[i]._effect == 999) {
+						switchSettings[i]._effect = toe;
+					}
+					if (ledSettings[i] != null && ledSettings[i]._effect == 999) {
+						ledSettings[i]._effect = toe;
+					}
+				}
 				eff = effectList.get(effectList.size()-1);
 				post("output-receive-from:"+eff.getHashName()+"-output");
 				PdBase.sendSymbol("output-receive-from", eff.getHashName()+"-output");
@@ -883,16 +1055,18 @@ public class StompBot extends Activity implements
 			if (rowView != null) {
 				return rowView;
 			}
+			final DragDropListView dd = (DragDropListView) parent;
 			LayoutInflater inflater = LayoutInflater.from(mContext);
 			View v = inflater.inflate(mLayoutId, null);
 
 			TextView rowTitle = (TextView) v.findViewById(R.id.text1);
-			rowTitle.setOnClickListener(new OnClickListener(){
-
-				public void onClick(View arg0) {
-					
-				}});
 			rowTitle.setText(mListContent[position]);
+
+//			
+//			rowTitle.setOnClickListener(new OnClickListener(){
+//
+//				public void onClick(View arg0) {
+//				}});
 			if (position == effectList.size() - 2) {
 				v.findViewById(R.id.arrow_down).setVisibility(View.INVISIBLE);
 			}
@@ -919,7 +1093,15 @@ public class StompBot extends Activity implements
 
 		@Override
 		public void receiveFloat(String source, float x) {
-			pdPost("float: " + x);
+//			for(int i = 0; i < 3; i++) {
+//				if (ledSettings[i] != null && ledSettings[i]._effect != -1 && ledSettings[i]._io != -1) {
+//					Effect ef = effectList.get(ledSettings[i]._effect);
+//					String efhash = ef.getHashName() + "-" + ef.getLEDValues().get(ledSettings[i]._io).getHashName()+"-led";
+//					if (source.equals(efhash)) {
+//						serialSend();
+//					}
+//				}
+//			}
 		}
 
 		@Override
@@ -967,10 +1149,15 @@ public class StompBot extends Activity implements
 			// defaults/preferences
 			pdService.startAudio(new Intent(this, StompBot.class),
 					R.drawable.icon, name, "Return to " + name + ".");
-			PdBase.sendFloat("left", 0);
-			PdBase.sendFloat("right", 0);
-			PdBase.sendFloat("mic", 0);
-
+			Iterator<Effect> efit = effectList.iterator();
+			while(efit.hasNext()) {
+				Effect ef = efit.next();
+				Iterator<EffectIO> swit = ef.getControls().iterator();
+				while(swit.hasNext()) {
+					EffectIO efio = swit.next();
+					PdBase.sendFloat(ef.getHashName()+"-"+efio.getHashName(),0);
+				}
+			}
 		} catch (IOException e) {
 			toast(e.toString());
 		}

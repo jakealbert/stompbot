@@ -11,6 +11,7 @@ public class EffectIOKnob implements EffectIO {
 	private String _pdcmd;
 	private SeekBar _sb;
 	private QuickActionWindow qaw;
+	private boolean _isFloat;
 
 	public EffectIOKnob(String name) {
 		_name = name;
@@ -19,7 +20,12 @@ public class EffectIOKnob implements EffectIO {
 	public EffectIOKnob(String name, int minValue, int maxValue) {
 		_name = name;
 		_minValue = minValue;
-		_maxValue = maxValue;
+		if (maxValue == 1) {
+			_isFloat = true;
+			_maxValue = 1024;
+		} else {
+			_maxValue = maxValue;
+		}
 		_curValue = (maxValue + minValue) / 2;
 	}
 
@@ -58,23 +64,34 @@ public class EffectIOKnob implements EffectIO {
 	public int getValue() {
 		return _curValue;
 	}
+	
+	public float getFloatValue() {
+		if (_isFloat) {
+			return (float) (((float) getValue()) / 1024.0);
+		} else {
+			return (float) getValue();
+		}
+	}
 
 	public void setValue(int v) {
 		this._curValue = v;
+		if (getSeekBar()!=null) {
+			getSeekBar().setProgress(getValue() + getMinValue());
+		}
 	}
 
 	public void incrementValue() {
 		int tmp = _curValue + _rate;
 		if (tmp > _maxValue)
 			tmp = _maxValue;
-		_curValue = tmp;
+		setValue(tmp);
 	}
 
 	public void decrementValue() {
 		int tmp = _curValue - _rate;
 		if (tmp < _minValue)
 			tmp = _minValue;
-		_curValue = tmp;
+		setValue(tmp);
 	}
 
 	public String getName() {
