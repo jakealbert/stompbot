@@ -241,50 +241,50 @@ public class StompBot extends Activity implements
 		});
 
 		SharedPreferences prefs = getPreferences(MODE_WORLD_READABLE);
-		for (int i = 0; i < 3; i++) {
-	
-			if (prefs.getInt("s" + i + "e", -1) != -1) {
-				switchSettings[i] = new EffectIOSetting(prefs.getInt("s" + i + "e",
-						-1), prefs.getInt("s" + i + "i", -1));
-				setButtonName(switchButtons[i], effectList.get(
-						switchSettings[i]._effect).getName(), effectList.get(
-						switchSettings[i]._effect).getSwitches().get(
-						switchSettings[i]._io).getName());
-				switchButtons[i].setCompoundDrawablesWithIntrinsicBounds(null,
-						getResources().getDrawable(R.drawable.spstoff), null,
-						null);
-			} else {
-				switchSettings[i] = null;
-			}
-			
-			if (prefs.getInt("l" + i + "e", -1) != -1) {
-				ledSettings[i] = new EffectIOSetting(prefs
-						.getInt("l" + i + "e", -1), prefs.getInt("l" + i + "i", -1));
-				setButtonName(ledButtons[i], effectList.get(
-						ledSettings[i]._effect).getName(), effectList.get(
-						ledSettings[i]._effect).getLEDValues().get(
-						ledSettings[i]._io).getName());
-				ledButtons[i].setCompoundDrawablesWithIntrinsicBounds(null,
-						getResources().getDrawable(R.drawable.ledoff), null,
-						null);
-			} else {
-				ledSettings[i] = null;
-			}
-			
-			if (prefs.getInt("k" + i + "e", -1) != -1) {
-				knobSettings[i] = new EffectIOSetting(prefs.getInt("k" + i + "e",
-						-1), prefs.getInt("k" + i + "i", -1));
-				setButtonName(knobButtons[i], effectList.get(
-						knobSettings[i]._effect).getName(), effectList.get(
-						knobSettings[i]._effect).getKnobs().get(
-						knobSettings[i]._io).getName());
-				knobButtons[i].setCompoundDrawablesWithIntrinsicBounds(null,
-						getResources().getDrawable(R.drawable.knobon), null,
-						null);
-			} else {
-				knobSettings[i] = null;
-			}
-		}
+//		for (int i = 0; i < 3; i++) {
+//	
+//			if (prefs.getInt("s" + i + "e", -1) != -1) {
+//				switchSettings[i] = new EffectIOSetting(prefs.getInt("s" + i + "e",
+//						-1), prefs.getInt("s" + i + "i", -1));
+//				setButtonName(switchButtons[i], effectList.get(
+//						switchSettings[i]._effect).getName(), effectList.get(
+//						switchSettings[i]._effect).getSwitches().get(
+//						switchSettings[i]._io).getName());
+//				switchButtons[i].setCompoundDrawablesWithIntrinsicBounds(null,
+//						getResources().getDrawable(R.drawable.spstoff), null,
+//						null);
+//			} else {
+//				switchSettings[i] = null;
+//			}
+//			
+//			if (prefs.getInt("l" + i + "e", -1) != -1) {
+//				ledSettings[i] = new EffectIOSetting(prefs
+//						.getInt("l" + i + "e", -1), prefs.getInt("l" + i + "i", -1));
+//				setButtonName(ledButtons[i], effectList.get(
+//						ledSettings[i]._effect).getName(), effectList.get(
+//						ledSettings[i]._effect).getLEDValues().get(
+//						ledSettings[i]._io).getName());
+//				ledButtons[i].setCompoundDrawablesWithIntrinsicBounds(null,
+//						getResources().getDrawable(R.drawable.ledoff), null,
+//						null);
+//			} else {
+//				ledSettings[i] = null;
+//			}
+//			
+//			if (prefs.getInt("k" + i + "e", -1) != -1) {
+//				knobSettings[i] = new EffectIOSetting(prefs.getInt("k" + i + "e",
+//						-1), prefs.getInt("k" + i + "i", -1));
+//				setButtonName(knobButtons[i], effectList.get(
+//						knobSettings[i]._effect).getName(), effectList.get(
+//						knobSettings[i]._effect).getKnobs().get(
+//						knobSettings[i]._io).getName());
+//				knobButtons[i].setCompoundDrawablesWithIntrinsicBounds(null,
+//						getResources().getDrawable(R.drawable.knobon), null,
+//						null);
+//			} else {
+//				knobSettings[i] = null;
+//			}
+//		}
 		for (int i = 1; i < effectList.size(); i++) {
 			int epos = prefs.getInt(effectList.get(i).getHashName(), i);
 			if (epos != i) {
@@ -299,7 +299,7 @@ public class StompBot extends Activity implements
 									+ j, eios.get(j).getValue()));
 				}
 			}
-		}
+		}		
 
 		ListView pedals = (ListView) findViewById(R.id.drag_drop_list);
 		pedals.setOnCreateContextMenuListener(this);
@@ -333,7 +333,18 @@ public class StompBot extends Activity implements
 		serialThread = getSerialThread();
 		serialThread.start();
 		alive = true;
-
+		for (int i = 1; i < effectList.size(); i++) {
+			Effect e = effectList.get(i);
+			String floatstr = e.getHashName() + "-receive-from";
+			String chfromstr = (i == 1) ? "clean-input" : (effectList.get(i-1).getHashName()+"-output");
+			post(floatstr + ": " + chfromstr);
+			PdBase.sendSymbol(floatstr, chfromstr);
+		}
+		String floatstr = "output-receive-from";
+		String chfromstr = effectList.get(effectList.size()-1).getHashName()+"-output";
+		post(floatstr + ":" + chfromstr);
+		PdBase.sendSymbol(floatstr, chfromstr);
+		
 		pedals.requestLayout();
 
 	}
@@ -761,17 +772,7 @@ public class StompBot extends Activity implements
 						null, getResources().getDrawable(R.drawable.spston),
 						null, null);
 			}
-			// serialSend("S:"+knob+":"+(switchStates[knob] ? "1" : "0"));
-			//if (knob == 0) {
-			//	PdBase.sendFloat("left", switchStates[knob] ? 1 : 0);
-
-			//} else if (knob == 1) {
-			//	PdBase.sendFloat("right", switchStates[knob] ? 1 : 0);
-
-			//} else {
-			//	PdBase.sendFloat("mic", switchStates[knob] ? 1 : 0);
-			//}
-
+			
 			String floatstr = effectList.get(switchSettings[knob]._effect).getHashName()
 					+ "-"
 					+ effectList.get(switchSettings[knob]._effect)
@@ -833,6 +834,17 @@ public class StompBot extends Activity implements
 		logs.setText("");
 		bindService(new Intent(this, PdService.class), pdConnection,
 				BIND_AUTO_CREATE);
+		for (int i = 1; i < effectList.size(); i++) {
+			Effect e = effectList.get(i);
+			String floatstr = e.getHashName() + "-receive-from";
+			String chfromstr = (i == 1) ? "clean-input" : (effectList.get(i-1).getHashName()+"-output");
+			post(floatstr + ": " + chfromstr);
+			PdBase.sendSymbol(floatstr, chfromstr);
+		}
+		String floatstr = "output-receive-from";
+		String chfromstr = effectList.get(effectList.size()-1).getHashName()+"-output";
+		post(floatstr + ":" + chfromstr);
+		PdBase.sendSymbol(floatstr, chfromstr);
 		vv1.setVisibility(View.GONE);
 		vv2.setVisibility(View.VISIBLE);
 
@@ -879,7 +891,7 @@ public class StompBot extends Activity implements
 			PrintStream p = new PrintStream(fos);
 			p.println(str);
 			fos.close();
-		} catch (Exception e) {
+		} catch (Exception e) { 
 			post(e.toString());
 			return;
 		}
@@ -972,23 +984,10 @@ public class StompBot extends Activity implements
 				Effect ef = effectList.get(from + 1);
 				effectList.remove(from + 1);
 				effectList.add(to + 1, ef);
-				Effect eff;
 				for (int i = 1; i < effectList.size(); i++) {
-					eff = effectList.get(i);
-					String floatstr = eff.getHashName() + "-receive-from";
-					
-					String chfromstr;
-					if(i == 1) {
-						chfromstr = "clean-input";
-					} else {
-						eff = effectList.get(i-1);
-						chfromstr = eff.getHashName() + "-output";
-					}
-					
-					//int floatval = i - 1;
-					//post(floatstr + ": " + floatval);
-					//PdBase.sendFloat(floatstr, floatval);
-
+					Effect e = effectList.get(i);
+					String floatstr = e.getHashName() + "-receive-from";
+					String chfromstr = (i == 1) ? "clean-input" : (effectList.get(i-1).getHashName()+"-output");
 					post(floatstr + ": " + chfromstr);
 					PdBase.sendSymbol(floatstr, chfromstr);
 				}
@@ -1027,9 +1026,10 @@ public class StompBot extends Activity implements
 						ledSettings[i]._effect = toe;
 					}
 				}
-				eff = effectList.get(effectList.size()-1);
-				post("output-receive-from:"+eff.getHashName()+"-output");
-				PdBase.sendSymbol("output-receive-from", eff.getHashName()+"-output");
+				String floatstr = "output-receive-from";
+				String chfromstr = effectList.get(effectList.size()-1).getHashName()+"-output";
+				post(floatstr + ":" + chfromstr);
+				PdBase.sendSymbol(floatstr, chfromstr);
 			}
 			ListView pedals = (ListView) findViewById(R.id.drag_drop_list);
 			pedals.setAdapter(new EffectArrayAdapter(getApplicationContext(),
@@ -1062,11 +1062,6 @@ public class StompBot extends Activity implements
 			TextView rowTitle = (TextView) v.findViewById(R.id.text1);
 			rowTitle.setText(mListContent[position]);
 
-//			
-//			rowTitle.setOnClickListener(new OnClickListener(){
-//
-//				public void onClick(View arg0) {
-//				}});
 			if (position == effectList.size() - 2) {
 				v.findViewById(R.id.arrow_down).setVisibility(View.INVISIBLE);
 			}
@@ -1130,6 +1125,17 @@ public class StompBot extends Activity implements
 			patchFile = IoUtils.extractResource(in, "stompbot.pd", getCacheDir());
 			PdBase.openPatch(patchFile);
 			startAudio();
+			for (int i = 1; i < effectList.size(); i++) {
+				Effect e = effectList.get(i);
+				String floatstr = e.getHashName() + "-receive-from";
+				String chfromstr = (i == 1) ? "clean-input" : (effectList.get(i-1).getHashName()+"-output");
+				post(floatstr + ": " + chfromstr);
+				PdBase.sendSymbol(floatstr, chfromstr);
+			}
+			String floatstr = "output-receive-from";
+			String chfromstr = effectList.get(effectList.size()-1).getHashName()+"-output";
+			post(floatstr + ":" + chfromstr);
+			PdBase.sendSymbol(floatstr, chfromstr);
 			Log.d(getResources().getString(R.string.app_name), "loaded"+patchFile.getName());
 		} catch (IOException e) {
 			Log.e(getResources().getString(R.string.app_name), e.toString());
