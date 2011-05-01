@@ -31,6 +31,7 @@ import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.os.Debug;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -760,11 +761,20 @@ public class StompBot extends Activity implements
 						null, getResources().getDrawable(R.drawable.spston),
 						null, null);
 			}
-		
+			// serialSend("S:"+knob+":"+(switchStates[knob] ? "1" : "0"));
+			//if (knob == 0) {
+			//	PdBase.sendFloat("left", switchStates[knob] ? 1 : 0);
 
-			String floatstr = effectList.get(switchSettings[knob]._effect)
-							.getHashName()
-					+ "-" + effectList.get(switchSettings[knob]._effect)
+			//} else if (knob == 1) {
+			//	PdBase.sendFloat("right", switchStates[knob] ? 1 : 0);
+
+			//} else {
+			//	PdBase.sendFloat("mic", switchStates[knob] ? 1 : 0);
+			//}
+
+			String floatstr = effectList.get(switchSettings[knob]._effect).getHashName()
+					+ "-"
+					+ effectList.get(switchSettings[knob]._effect)
 							.getSwitches().get(switchSettings[knob]._io)
 							.getHashName();
 			int floatval = switchStates[knob] ? 1 : 0;
@@ -962,12 +972,25 @@ public class StompBot extends Activity implements
 				Effect ef = effectList.get(from + 1);
 				effectList.remove(from + 1);
 				effectList.add(to + 1, ef);
+				Effect eff;
 				for (int i = 1; i < effectList.size(); i++) {
-					Effect eff = effectList.get(i);
-					String floatstr = eff.getHashName() + "-position";
-					int floatval = i - 1;
-					post(floatstr + ": " + floatval);
-					PdBase.sendFloat(floatstr, floatval);
+					eff = effectList.get(i);
+					String floatstr = eff.getHashName() + "-receive-from";
+					
+					String chfromstr;
+					if(i == 1) {
+						chfromstr = "clean-input";
+					} else {
+						eff = effectList.get(i-1);
+						chfromstr = eff.getHashName() + "-output";
+					}
+					
+					//int floatval = i - 1;
+					//post(floatstr + ": " + floatval);
+					//PdBase.sendFloat(floatstr, floatval);
+
+					post(floatstr + ": " + chfromstr);
+					PdBase.sendSymbol(floatstr, chfromstr);
 				}
 				int frome = from + 1;
 				int toe = to + 1;
@@ -1004,6 +1027,9 @@ public class StompBot extends Activity implements
 						ledSettings[i]._effect = toe;
 					}
 				}
+				eff = effectList.get(effectList.size()-1);
+				post("output-receive-from:"+eff.getHashName()+"-output");
+				PdBase.sendSymbol("output-receive-from", eff.getHashName()+"-output");
 			}
 			ListView pedals = (ListView) findViewById(R.id.drag_drop_list);
 			pedals.setAdapter(new EffectArrayAdapter(getApplicationContext(),
@@ -1101,9 +1127,10 @@ public class StompBot extends Activity implements
 			PdBase.setReceiver(receiver);
 			PdBase.subscribe("android");
 			InputStream in = res.openRawResource(R.raw.test);
-			patchFile = IoUtils.extractResource(in, "test.pd", getCacheDir());
+			patchFile = IoUtils.extractResource(in, "stompbot.pd", getCacheDir());
 			PdBase.openPatch(patchFile);
 			startAudio();
+			Log.d(getResources().getString(R.string.app_name), "loaded"+patchFile.getName());
 		} catch (IOException e) {
 			Log.e(getResources().getString(R.string.app_name), e.toString());
 			finish();
